@@ -18,6 +18,9 @@ from django.utils import timezone
 
 ```python
 bk1 = Book(title="1984", author="George Orwell", publication_year=1949)
+# or
+bk2 = Book.objects.create(title="1984", author="George Orwell", publication_year=1949)
+
 ```
 
 ## Save the instance to the database
