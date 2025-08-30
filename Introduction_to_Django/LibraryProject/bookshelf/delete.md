@@ -9,28 +9,29 @@ python manage.py shell
 ## Retrieve the instance
 
 ```python
-bk2 = Book.objects.get(title="2024")
+from bookshelf.models import Book
+book = Book.objects.get(title="1984")
 ```
 
 ## Delete the instance
 
 ```python
-bk2.delete()
+book.delete()
 ```
 
 ## Command
 
 ```python
->>> bk2 = Book.objects.get(title="1984")
->>> bk2.title = "2024"
->>> bk2.save()
+>>> book = Book.objects.get(title="1984")
+>>> book.title = "2024"
+>>> book.save()
 >>> Book.objects.all()
 <QuerySet [<Book: Book object (1)>]>
 >>> Book.objects.filter(title="1984")
 <QuerySet []>
 >>> Book.objects.filter(title="2024")
 <QuerySet [<Book: Book object (1)>]>
->>> bk2.delete()
+>>> book.delete()
 (1, {'bookshelf.Book': 1})
 ```
 
