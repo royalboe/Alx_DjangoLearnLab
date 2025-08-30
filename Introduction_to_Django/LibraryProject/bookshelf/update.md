@@ -10,9 +10,9 @@ python manage.py shell
 ## Retrieve an instance
 
 ```python
-bk2 = Book.objects.get(title="1948")
-bk2.title = "2024"
-bk2.save()
+book = Book.objects.get(title="1948")
+book.title = "Nineteen Eighty-Four"
+book.save()
 ```
 
 ## Verify the instance is updated
@@ -20,7 +20,7 @@ bk2.save()
 ```python
 Book.objects.all()
 # or
-Book.objects.filter(title="2024")
+Book.objects.filter(title="Nineteen Eighty-Four")
 ```
 
 ## Output of the commands ran
