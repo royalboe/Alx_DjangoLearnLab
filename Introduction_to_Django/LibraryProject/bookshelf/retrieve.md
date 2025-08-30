@@ -15,7 +15,7 @@ Book.objects.all()
 ## Retrieve books by title
 
 ```python
-Book.objects.filter(title="1984")
+Book.objects.get(title="1984")
 ```
 
 ## Outputs
