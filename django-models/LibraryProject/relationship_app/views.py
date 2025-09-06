@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.views import ListView, DetailView
+from django.views import DetailView
 from django.template import loader
 from django.http import HttpResponse
 from .models import Book, Author, Library, Librarian
