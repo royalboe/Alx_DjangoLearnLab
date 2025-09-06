@@ -10,7 +10,7 @@ def list_books(request):
     books = Book.objects.all()
     # template = loader.get_template('list_books.html')
     context = {'books': books}
-    return render(request, 'list_books.html', context)
+    return render(request, 'relationship_app/list_books.html', context)
     # return HttpResponse(template.render(context, request))
 
 
