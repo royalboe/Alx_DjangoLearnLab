@@ -1,4 +1,5 @@
 from django.urls import path
+from . import views
 from .views import list_books, LibraryDetailView, SignUpView, CustomLoginView, CustomLogoutView
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.views import LogoutView
@@ -10,4 +11,8 @@ urlpatterns = [
     path('register/', views.register, name='signup'),
     path('login/', LoginView.as_view(template_name='relationship_app/login.html'), name='login'),
     path('logout/', LogoutView.as_view(template_name='relationship_app/logout.html'), name='logout'),
+    path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('librarian-dashboard/', views.librarian_dashboard, name='librarian_dashboard'),
+    path('member-dashboard/', views.member_dashboard, name='member_dashboard'),
+
 ]
