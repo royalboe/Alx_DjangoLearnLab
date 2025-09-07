@@ -7,6 +7,7 @@ urlpatterns = [
     path('books/', list_books, name='list_books'),
     path('libraries/<int:pk>/', LibraryDetailView.as_view(), name='library_detail'),
     path('signup/', SignUpView.as_view(), name='signup'),
+    path('register/', views.register, name='signup'),
     path('login/', LoginView.as_view(template_name='relationship_app/login.html'), name='login'),
     path('logout/', LogoutView.as_view(template_name='relationship_app/logout.html'), name='logout'),
 ]
