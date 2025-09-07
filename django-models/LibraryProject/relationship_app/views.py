@@ -1,13 +1,12 @@
 from django.shortcuts import render
 from django.views.generic.detail import DetailView
-from django.template import loader
-from django.http import HttpResponse
 
 from django.contrib.auth.forms import UserCreationForm
 from django.urls import reverse_lazy
 from django.views.generic import CreateView
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.views import LogoutView
+from django.contrib.auth import login
 
 from .models import Book, Author, Library, Librarian
 from .models import Library
