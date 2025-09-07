@@ -37,7 +37,7 @@ class LibraryDetailView(DetailView):
 class SignUpView(CreateView):
     form_class = UserCreationForm
     success_url = reverse_lazy('login')
-    template_name = 'relationship_app/signup.html'
+    template_name = 'relationship_app/register.html'
 
 def register(request):
     if request.method == "POST":
@@ -49,7 +49,7 @@ def register(request):
     else:
         form = UserCreationForm()
 
-    return render(request, "relationship_app/signup.html", {"form": form})
+    return render(request, "relationship_app/register.html", {"form": form})
 
 
 class CustomLoginView(LoginView):
