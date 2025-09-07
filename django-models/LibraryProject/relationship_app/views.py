@@ -2,6 +2,13 @@ from django.shortcuts import render
 from django.views.generic.detail import DetailView
 from django.template import loader
 from django.http import HttpResponse
+
+from django.contrib.auth.forms import UserCreationForm
+from django.urls import reverse_lazy
+from django.views.generic import CreateView
+from django.contrib.auth.views import LoginView
+from django.contrib.auth.views import LogoutView
+
 from .models import Book, Author, Library, Librarian
 from .models import Library
 
@@ -26,3 +33,15 @@ class LibraryDetailView(DetailView):
     #     # Add in a QuerySet of all the books
     #     context["books"] = self.object.books.all()
     #     return context
+
+class SignUpView(CreateView):
+    form_class = UserCreationForm
+    success_url = reverse_lazy('login')
+    template_name = 'relationship_app/signup.html'
+
+class CustomLoginView(LoginView):
+    template_name = 'relationship_app/login.html'
+
+class CustomLogoutView(LogoutView):
+    template_name = 'relationship_app/logout.html'
+
