@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views.generic.detail import DetailView
 
 from django.contrib.auth.forms import UserCreationForm
@@ -7,6 +7,7 @@ from django.views.generic import CreateView
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.views import LogoutView
 from django.contrib.auth import login
+from django.contrib import messages
 
 from .models import Book, Author, Library, Librarian
 from .models import Library
@@ -37,6 +38,19 @@ class SignUpView(CreateView):
     form_class = UserCreationForm
     success_url = reverse_lazy('login')
     template_name = 'relationship_app/signup.html'
+
+def register(request):
+    if request.method == "POST":
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()  # creates the user
+            messages.success(request, "Account created successfully. You can now log in.")
+            return redirect("login")  # or wherever you want to redirect
+    else:
+        form = UserCreationForm()
+
+    return render(request, "relationship_app/signup.html", {"form": form})
+
 
 class CustomLoginView(LoginView):
     template_name = 'relationship_app/login.html'
