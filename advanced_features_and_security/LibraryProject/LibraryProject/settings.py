@@ -23,9 +23,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-+__1yvyv^$69lf^bd1x=*v69(*c0efo(#z5cc+qyd*w4q=f-(p'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.1.0.0']
 
 
 # Application definition
@@ -39,10 +39,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'bookshelf',
     'relationship_app',
+    'csp',  # If using django-csp for Content Security Policy
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'csp.middleware.CSPMiddleware',  # using django-csp
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -125,3 +127,35 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'bookshelf.CustomUser'
+
+# Cookies over just HTTPS only
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+
+
+# Prevent browsers from MIME-sniffing a response away from declared content-type
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# Enable the browser XSS filter
+SECURE_BROWSER_XSS_FILTER = True
+
+# Clickjacking protection - only allow same origin (or use DENY)
+X_FRAME_OPTIONS = "DENY"  # or "SAMEORIGIN" depending on embedding needs
+
+# Redirect all HTTP -> HTTPS
+SECURE_SSL_REDIRECT = True
+
+# HTTP Strict Transport Security (HSTS)
+SECURE_HSTS_SECONDS = 60 * 60 * 24 * 30  # 30 days; increase after verifying HTTPS works
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = False  # set True only after HSTS verification
+
+# Content Security Policy (if using django-csp) — example, tune as needed
+# Installed apps and middleware must also include 'csp' if you use django-csp
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_SCRIPT_SRC = ("'self'",)   # add trusted external script sources explicitly
+CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")  # prefer removing 'unsafe-inline' if possible
+
+# Other useful hardening settings
+SECURE_REFERRER_POLICY = "same-origin"
+
