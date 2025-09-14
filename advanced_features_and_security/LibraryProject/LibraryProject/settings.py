@@ -158,4 +158,5 @@ CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")  # prefer removing 'unsafe-inline'
 
 # Other useful hardening settings
 SECURE_REFERRER_POLICY = "same-origin"
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
