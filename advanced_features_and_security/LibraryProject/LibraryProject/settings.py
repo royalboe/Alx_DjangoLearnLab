@@ -146,7 +146,7 @@ X_FRAME_OPTIONS = "DENY"  # or "SAMEORIGIN" depending on embedding needs
 SECURE_SSL_REDIRECT = True
 
 # HTTP Strict Transport Security (HSTS)
-SECURE_HSTS_SECONDS = 60 * 60 * 24 * 30  # 30 days; increase after verifying HTTPS works
+SECURE_HSTS_SECONDS = "31536000"  # 30 days; increase after verifying HTTPS works
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = False  # set True only after HSTS verification
 
