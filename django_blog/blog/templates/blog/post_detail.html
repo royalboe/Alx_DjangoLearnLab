@@ -50,3 +50,35 @@
 
   <p><a href="{% url 'blog:post-list' %}">Back to posts</a></p>
 {% endblock %}
+
+{% extends "blog/base.html" %}
+{% block content %}
+  <article>
+    <h1>{{ post.title }}</h1>
+    <p class="meta">By {{ post.author }} — {{ post.published_date|date:"F j, Y, g:i a" }}</p>
+
+    {% if post.tags.all %}
+      <p>Tags:
+        {% for tag in post.tags.all %}
+          <a href="{% url 'blog:posts-by-tag' tag.name %}">{{ tag.name }}</a>{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+      </p>
+    {% endif %}
+
+    <div class="post-content">
+      {{ post.content|linebreaks }}
+    </div>
+
+    {% if user == post.author %}
+      <p class="post-actions">
+        <a href="{% url 'blog:post-update' post.pk %}">Edit</a> |
+        <a href="{% url 'blog:post-delete' post.pk %}">Delete</a>
+      </p>
+    {% endif %}
+  </article>
+
+  <!-- comments section remains unchanged (as per earlier) -->
+  {% include "blog/post_comments_section.html" with post=post comment_form=comment_form %}
+  <p><a href="{% url 'blog:post-list' %}">Back to posts</a></p>
+{% endblock %}
+

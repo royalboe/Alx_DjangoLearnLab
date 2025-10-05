@@ -40,13 +40,29 @@ class ProfileUpdateForm(forms.ModelForm):
 
 
 class PostForm(forms.ModelForm):
+    # Input for tags, comma-separated
+    tags = forms.CharField(
+        required=False,
+        help_text="Comma-separated tags. Example: django, python, web",
+        widget=forms.TextInput(attrs={'placeholder': 'tag1, tag2, tag3', 'class': 'form-control'})
+    )
+
     class Meta:
         model = Post
-        fields = ['title', 'content']
+        fields = ['title', 'content', 'tags']
         widgets = {
             'title': forms.TextInput(attrs={'placeholder': 'Title', 'class': 'form-control'}),
             'content': forms.Textarea(attrs={'placeholder': 'Write your post here...', 'class': 'form-control', 'rows': 10}),
         }
+
+    def __init__(self, *args, **kwargs):
+        # If instance is provided, populate the tags field with comma-separated names
+        instance = kwargs.get('instance', None)
+        super().__init__(*args, **kwargs)
+        if instance:
+            tag_names = ', '.join([t.name for t in instance.tags.all()])
+            self.fields['tags'].initial = tag_names
+
 
 class CommentForm(forms.ModelForm):
     content = forms.CharField(

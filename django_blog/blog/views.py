@@ -22,6 +22,9 @@ from .models import Post
 from .forms import PostForm
 from .models import Comment
 from .forms import CommentForm
+from django.db.models import Q
+from .models import Post, Comment, Tag
+from .forms import PostForm, CommentForm
 
 
 
@@ -198,3 +201,157 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 
     def get_success_url(self):
         return reverse('blog:post-detail', kwargs={'pk': self.object.post.pk})
+    
+
+
+
+
+# --- Posts ---
+
+class PostListView(ListView):
+    model = Post
+    template_name = 'blog/post_list.html'
+    context_object_name = 'posts'
+    paginate_by = 10
+
+
+class PostDetailView(DetailView):
+    model = Post
+    template_name = 'blog/post_detail.html'
+    context_object_name = 'post'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['comment_form'] = CommentForm()
+        return context
+
+
+class PostCreateView(LoginRequiredMixin, CreateView):
+    model = Post
+    form_class = PostForm
+    template_name = 'blog/post_form.html'
+
+    def form_valid(self, form):
+        # set author
+        form.instance.author = self.request.user
+        # save Post first (but don't commit tags yet)
+        response = super().form_valid(form)
+
+        # process tags from the form
+        tag_string = form.cleaned_data.get('tags', '')
+        tag_objs = []
+        if tag_string:
+            tag_names = [t.strip() for t in tag_string.split(',') if t.strip()]
+            for name in tag_names:
+                tag_obj, created = Tag.objects.get_or_create(name__iexact=name, defaults={'name': name})
+                # Tag.objects.get_or_create doesn't accept name__iexact in get params, so use try/except for case-insensitive uniqueness:
+                # We'll implement case-insensitive get_or_create below to be safe
+            # Corrected processing below (case-insensitive)
+        # Re-implemented safely:
+        if tag_string:
+            tag_names = [t.strip() for t in tag_string.split(',') if t.strip()]
+            for name in tag_names:
+                tag_obj = Tag.objects.filter(name__iexact=name).first()
+                if not tag_obj:
+                    tag_obj = Tag.objects.create(name=name)
+                tag_objs.append(tag_obj)
+
+        if tag_objs:
+            self.object.tags.set(tag_objs)
+
+        messages.success(self.request, 'Post created successfully.')
+        return response
+
+    def get_success_url(self):
+        return reverse('blog:post-detail', kwargs={'pk': self.object.pk})
+
+
+class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Post
+    form_class = PostForm
+    template_name = 'blog/post_form.html'
+
+    def form_valid(self, form):
+        # Ensure the author remains the logged-in user (or keep original)
+        form.instance.author = self.request.user
+        response = super().form_valid(form)
+
+        # process tags: replace post.tags with provided tags
+        tag_string = form.cleaned_data.get('tags', '')
+        tag_objs = []
+        if tag_string:
+            tag_names = [t.strip() for t in tag_string.split(',') if t.strip()]
+            for name in tag_names:
+                tag_obj = Tag.objects.filter(name__iexact=name).first()
+                if not tag_obj:
+                    tag_obj = Tag.objects.create(name=name)
+                tag_objs.append(tag_obj)
+
+        # set tags (if none provided, clear them)
+        self.object.tags.set(tag_objs)
+        messages.success(self.request, 'Post updated successfully.')
+        return response
+
+    def test_func(self):
+        post = self.get_object()
+        return self.request.user == post.author
+
+    def handle_no_permission(self):
+        messages.error(self.request, 'You do not have permission to edit this post.')
+        return redirect('blog:post-detail', pk=self.get_object().pk)
+
+
+class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Post
+    template_name = 'blog/post_confirm_delete.html'
+    success_url = reverse_lazy('blog:post-list')
+
+    def test_func(self):
+        post = self.get_object()
+        return self.request.user == post.author
+
+    def handle_no_permission(self):
+        messages.error(self.request, 'You do not have permission to delete this post.')
+        return redirect('blog:post-detail', pk=self.get_object().pk)
+
+
+# --- Tags and Search ---
+
+class TagPostListView(ListView):
+    model = Post
+    template_name = 'blog/posts_by_tag.html'
+    context_object_name = 'posts'
+    paginate_by = 10
+
+    def get_queryset(self):
+        self.tag = get_object_or_404(Tag, name__iexact=self.kwargs.get('tag_name'))
+        return self.tag.posts.all()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['tag'] = self.tag
+        return context
+
+
+class SearchResultsView(ListView):
+    model = Post
+    template_name = 'blog/search_results.html'
+    context_object_name = 'posts'
+    paginate_by = 10
+
+    def get_queryset(self):
+        query = self.request.GET.get('q', '').strip()
+        if not query:
+            return Post.objects.none()
+        # search title OR content OR tag name (case-insensitive)
+        queryset = Post.objects.filter(
+            Q(title__icontains=query) |
+            Q(content__icontains=query) |
+            Q(tags__name__icontains=query)
+        ).distinct()
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['query'] = self.request.GET.get('q', '')
+        return context
