@@ -20,6 +20,8 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 
 from .models import Post
 from .forms import PostForm
+from .models import Comment
+from .forms import CommentForm
 
 
 
@@ -137,4 +139,62 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         messages.error(self.request, 'You do not have permission to delete this post.')
         return redirect('blog:post-detail', pk=self.get_object().pk)
 
+class CommentCreateView(LoginRequiredMixin, CreateView):
+    model = Comment
+    form_class = CommentForm
+    template_name = 'blog/comment_form.html'  # fallback page; we will also post from post_detail inline
 
+    def dispatch(self, request, *args, **kwargs):
+        # ensure post exists
+        self.post = get_object_or_404(Post, pk=self.kwargs.get('post_pk'))
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        form.instance.post = self.post
+        response = super().form_valid(form)
+        messages.success(self.request, 'Your comment was added.')
+        return response
+
+    def get_success_url(self):
+        return reverse('blog:post-detail', kwargs={'pk': self.post.pk})
+
+    # if user POSTS the comment inline from post_detail, the CreateView will still accept it because it expects POST to this URL
+
+
+class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Comment
+    form_class = CommentForm
+    template_name = 'blog/comment_form.html'
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, 'Your comment was updated.')
+        return response
+
+    def test_func(self):
+        comment = self.get_object()
+        return self.request.user == comment.author
+
+    def handle_no_permission(self):
+        messages.error(self.request, 'You do not have permission to edit this comment.')
+        return redirect('blog:post-detail', pk=self.get_object().post.pk)
+
+    def get_success_url(self):
+        return reverse('blog:post-detail', kwargs={'pk': self.object.post.pk})
+
+
+class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Comment
+    template_name = 'blog/comment_confirm_delete.html'
+
+    def test_func(self):
+        comment = self.get_object()
+        return self.request.user == comment.author
+
+    def handle_no_permission(self):
+        messages.error(self.request, 'You do not have permission to delete this comment.')
+        return redirect('blog:post-detail', pk=self.get_object().post.pk)
+
+    def get_success_url(self):
+        return reverse('blog:post-detail', kwargs={'pk': self.object.post.pk})
