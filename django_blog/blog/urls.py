@@ -21,9 +21,11 @@ urlpatterns = [
     path("post/<int:pk>/update/", views.PostUpdateView.as_view(), name='post-update'),
     path("post/<int:pk>/delete/", views.PostDeleteView.as_view(), name='post-delete'),
      # comments (nested under posts)
-    path("posts/<int:post_pk>/comments/new/", views.CommentCreateView.as_view(), name='comment-create'),
-    path("posts/<int:post_pk>/comments/<int:pk>/edit/", views.CommentUpdateView.as_view(), name='comment-update'),
-    path("posts/<int:post_pk>/comments/<int:pk>/delete/", views.CommentDeleteView.as_view(), name='comment-delete'),
+    path("post/<int:pk>/comments/new/", views.CommentCreateView.as_view(), name='comment-create'),
+    path("comment/<int:pk>/update/", views.CommentUpdateView.as_view(), name='comment-update'),
+    path("comment/<int:pk>/delete/", views.CommentDeleteView.as_view(), name='comment-delete'),
 ]
 
 [, "post/<int:pk>/update/", "post/new/", "post/<int:pk>/delete/", "posts/<int:pk>/", "posts/"]
+
+["comment/<int:pk>/update/", "post/<int:pk>/comments/new/", "comment/<int:pk>/delete/"]
