@@ -8,12 +8,18 @@ from .forms import UserUpdateForm, ProfileUpdateForm
 from django.contrib.auth import get_user_model
 
 from django.contrib.auth.forms import UserCreationForm
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.views.generic import CreateView
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.views import LogoutView
 from django.contrib.auth import login
 from django.contrib import messages
+
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+
+from .models import Post
+from .forms import PostForm
 
 
 
@@ -65,3 +71,70 @@ def profile(request):
         'p_form': p_form,
     }
     return render(request, 'blog/profile.html', context)
+
+# --- Post CRUD views ---
+
+class PostListView(ListView):
+    model = Post
+    template_name = 'blog/post_list.html'  # blog/templates/blog/post_list.html
+    context_object_name = 'posts'
+    paginate_by = 10  # optional: paginate 10 posts per page
+
+
+class PostDetailView(DetailView):
+    model = Post
+    template_name = 'blog/post_detail.html'
+    context_object_name = 'post'
+
+
+class PostCreateView(LoginRequiredMixin, CreateView):
+    model = Post
+    form_class = PostForm
+    template_name = 'blog/post_form.html'
+
+    def form_valid(self, form):
+        # set author to logged-in user
+        form.instance.author = self.request.user
+        response = super().form_valid(form)
+        messages.success(self.request, 'Post created successfully.')
+        return response
+
+    def get_success_url(self):
+        return reverse('blog:post-detail', kwargs={'pk': self.object.pk})
+
+
+class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Post
+    form_class = PostForm
+    template_name = 'blog/post_form.html'
+
+    def form_valid(self, form):
+        # ensure author remains unchanged
+        form.instance.author = self.request.user
+        response = super().form_valid(form)
+        messages.success(self.request, 'Post updated successfully.')
+        return response
+
+    def test_func(self):
+        post = self.get_object()
+        return self.request.user == post.author
+
+    def handle_no_permission(self):
+        messages.error(self.request, 'You do not have permission to edit this post.')
+        return redirect('blog:post-detail', pk=self.get_object().pk)
+
+
+class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Post
+    template_name = 'blog/post_confirm_delete.html'
+    success_url = reverse_lazy('blog:post-list')
+
+    def test_func(self):
+        post = self.get_object()
+        return self.request.user == post.author
+
+    def handle_no_permission(self):
+        messages.error(self.request, 'You do not have permission to delete this post.')
+        return redirect('blog:post-detail', pk=self.get_object().pk)
+
+

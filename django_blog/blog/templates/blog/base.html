@@ -31,3 +31,16 @@
     <script src="{% static 'js/scripts.js' %}"></script>
 </body>
 </html>
+
+
+<nav>
+  <a href="{% url 'blog:post-list' %}">Posts</a>
+  {% if user.is_authenticated %}
+    <a href="{% url 'blog:post-create' %}">New Post</a>
+    <a href="{% url 'blog:profile' %}">Profile</a>
+    <a href="{% url 'blog:logout' %}">Logout</a>
+  {% else %}
+    <a href="{% url 'blog:login' %}">Login</a>
+    <a href="{% url 'blog:register' %}">Register</a>
+  {% endif %}
+</nav>
