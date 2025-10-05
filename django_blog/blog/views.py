@@ -317,7 +317,7 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 
 # --- Tags and Search ---
 
-class TagPostListView(ListView):
+class PostByTagView(ListView):
     model = Post
     template_name = 'blog/posts_by_tag.html'
     context_object_name = 'posts'
