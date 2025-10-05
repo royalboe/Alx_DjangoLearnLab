@@ -2,6 +2,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic.detail import DetailView
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.decorators import login_required
+from .models import Profile
+from .forms import UserUpdateForm, ProfileUpdateForm
+from django.contrib.auth import get_user_model
 
 from django.contrib.auth.forms import UserCreationForm
 from django.urls import reverse_lazy
@@ -36,3 +40,28 @@ class CustomLoginView(LoginView):
 
 class CustomLogoutView(LogoutView):
     template_name = 'blog/logout.html'
+
+
+@login_required
+def profile(request):
+    # defensive: ensure profile exists
+    if not hasattr(request.user, 'profile'):
+        Profile.objects.get_or_create(user=request.user)
+
+    if request.method == 'POST':
+        u_form = UserUpdateForm(request.POST, instance=request.user)
+        p_form = ProfileUpdateForm(request.POST, request.FILES, instance=request.user.profile)
+        if u_form.is_valid() and p_form.is_valid():
+            u_form.save()
+            p_form.save()
+            messages.success(request, 'Your profile was updated successfully.')
+            return redirect('blog:profile')
+    else:
+        u_form = UserUpdateForm(instance=request.user)
+        p_form = ProfileUpdateForm(instance=request.user.profile)
+
+    context = {
+        'u_form': u_form,
+        'p_form': p_form,
+    }
+    return render(request, 'blog/profile.html', context)
