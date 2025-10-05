@@ -6,6 +6,8 @@ from .models import Profile
 from .models import Post
 from .models import Comment
 
+from taggit.forms import TagWidget
+
 class UserRegistrationForm(UserCreationForm):
     email = forms.EmailField(required=True)
     first_name = forms.CharField(required=False)
@@ -45,8 +47,11 @@ class PostForm(forms.ModelForm):
         required=False,
         help_text="Comma-separated tags. Example: django, python, web",
         widget=forms.TextInput(attrs={'placeholder': 'tag1, tag2, tag3', 'class': 'form-control'})
-    )
 
+    )
+    widgets = {
+            'tags': TagWidget()
+        }
     class Meta:
         model = Post
         fields = ['title', 'content', 'tags']
