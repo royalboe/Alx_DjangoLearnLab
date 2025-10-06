@@ -30,7 +30,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         # user = User(**validated_data)
         user.set_password(password)
         user.save()
-        Token.objects.create(user=user)
+        Token.objects.get_or_create(user=user)
         return user
 
 

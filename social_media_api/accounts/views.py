@@ -19,7 +19,7 @@ class RegisterViewSet(viewsets.ViewSet):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            token = Token.objects.create(user=user)
+            token, _ = Token.objects.get_or_create(user=user)
             return Response({"message": "User registered successfully", "token": token.key}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
