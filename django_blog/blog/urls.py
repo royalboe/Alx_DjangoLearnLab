@@ -32,6 +32,6 @@ urlpatterns = [
 
 ]
 
-[, "post/<int:pk>/update/", "post/new/", "post/<int:pk>/delete/", "posts/<int:pk>/", "posts/"]
+# [, "post/<int:pk>/update/", "post/new/", "post/<int:pk>/delete/", "posts/<int:pk>/", "posts/"]
 
-["comment/<int:pk>/update/", "post/<int:pk>/comments/new/", "comment/<int:pk>/delete/"]
+# ["comment/<int:pk>/update/", "post/<int:pk>/comments/new/", "comment/<int:pk>/delete/"]
