@@ -11,6 +11,8 @@ from .filters import PostFilter, CommentFilter
 
 from .serializers import PostSerializer, CommentSerializer
 from .permissions import IsOwnerOrReadOnly
+from rest_framework import status
+from rest_framework.response import Response
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
@@ -20,7 +22,7 @@ class PostViewSet(viewsets.ModelViewSet):
     ordering_fields = ['created_at', 'updated_at']
     ordering = ['-created_at']
     filterset_class = PostFilter
-    # permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -45,3 +47,25 @@ class CommentViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
+class FeedViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = PostSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    # def feed(self, request):
+    #     user = request.user
+    #     following_users = user.following.all()
+    #     posts = Post.objects.filter(author__in=following_users).order_by('-created_at')
+    #     serializer = PostSerializer(posts, many=True)
+    #     return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def get_queryset(self):
+        user = self.request.user
+        qs = Post.objects.all()
+        if user.is_authenticated:
+            if user.is_superuser:
+                return qs
+            following_users = self.request.user.following.all()
+            return qs.filter(author__in=list(following_users) + [self.request.user])
+        else:
+            qs = qs.none()
+        return qs.order_by('-created_at')
