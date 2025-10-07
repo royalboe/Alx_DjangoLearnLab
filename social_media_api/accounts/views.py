@@ -1,4 +1,4 @@
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, generics
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from rest_framework import status
@@ -15,6 +15,8 @@ from rest_framework.authtoken.models import Token
 from rest_framework.decorators import permission_classes
 
 User = get_user_model()
+CustomUser = get_user_model()
+
 
 class RegisterViewSet(viewsets.ViewSet):
     permission_classes = [permissions.AllowAny]
@@ -87,27 +89,33 @@ def follow_user(request, user_id):
     request.user.following.add(user_to_follow)
     return Response({"message": f"You are now following {user_to_follow.username}"}, status=status.HTTP_200_OK)
 
+class FollowUserView(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = CustomUser.objects.all()
+    allowed_methods = ['POST']
 
-@api_view(['POST'])
-@permission_classes([permissions.IsAuthenticated])
-def unfollow_user(request, user_id):
-    if request.user.id == user_id:
-        return Response({"message": "You cannot unfollow yourself"}, status=status.HTTP_400_BAD_REQUEST)
-    user_to_unfollow = get_user_by_id(user_id)
-    if not user_to_unfollow:
-        return Response({"message": "User does not exist"}, status=status.HTTP_404_NOT_FOUND)
-    if user_to_unfollow not in request.user.following.all():
-        return Response({"message": "You are not following this user"}, status=status.HTTP_400_BAD_REQUEST)
-    request.user.following.remove(user_to_unfollow)
-    return Response({"message": f"You have unfollowed {user_to_unfollow.username}"}, status=status.HTTP_200_OK)
+    def post(self, request, user_id):
+        if request.user.id == user_id:
+            return Response({"message": "You cannot follow yourself"}, status=status.HTTP_400_BAD_REQUEST)
+        user_to_follow = get_user_by_id(user_id)
+        if not user_to_follow:
+            return Response({"message": "User does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        if user_to_follow in request.user.following.all():
+            return Response({"message": "You are already following this user"}, status=status.HTTP_400_BAD_REQUEST)
+        request.user.following.add(user_to_follow)
+        return Response({"message": f"You are now following {user_to_follow.username}"}, status=status.HTTP_200_OK)
 
-
-@api_view(['GET'])
-@permission_classes([permissions.IsAuthenticated])
-def get_followers_feeds(request, user_id):
-    user = get_user_by_id(user_id)
-    if not user:
-        return Response({"message": "User does not exist"}, status=status.HTTP_404_NOT_FOUND)
-    followers = user.followers.all()
-    serializer = UserProfileSerializer(followers, many=True)
-    return Response(serializer.data, status=status.HTTP_200_OK)
+class UnfollowUserView(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = CustomUser.objects.all()
+    allowed_methods = ['POST']
+    def post(self, request, user_id):
+        if request.user.id == user_id:
+            return Response({"message": "You cannot unfollow yourself"}, status=status.HTTP_400_BAD_REQUEST)
+        user_to_unfollow = get_user_by_id(user_id)
+        if not user_to_unfollow:
+            return Response({"message": "User does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        if user_to_unfollow not in request.user.following.all():
+            return Response({"message": "You are not following this user"}, status=status.HTTP_400_BAD_REQUEST)
+        request.user.following.remove(user_to_unfollow)
+        return Response({"message": f"You have unfollowed {user_to_unfollow.username}"}, status=status.HTTP_200_OK)
