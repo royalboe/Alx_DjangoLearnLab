@@ -6,9 +6,9 @@ from rest_framework.routers import DefaultRouter
 from .views import PostViewSet, CommentViewSet, FeedViewSet
 
 router = DefaultRouter()
-router.register('posts', PostViewSet, basename='post')
-router.register('comments', CommentViewSet, basename='comment')
-router.register("feed", FeedViewSet, basename='feed')
+router.register('posts/', PostViewSet, basename='post')
+router.register('comments/', CommentViewSet, basename='comment')
+router.register("feed/", FeedViewSet, basename='feed')
 
 urlpatterns = [
     path('', include(router.urls)),
