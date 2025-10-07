@@ -26,7 +26,6 @@ class RegisterViewSet(viewsets.ViewSet):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            token, _ = Token.objects.get_or_create(user=user)
             return Response({"message": "User registered successfully", "token": token.key}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -74,20 +73,6 @@ def get_user_by_id(user_id):
         return User.objects.get(id=user_id)
     except User.DoesNotExist:
         return None
-
-
-@api_view(['POST'])
-@permission_classes([permissions.IsAuthenticated])
-def follow_user(request, user_id):
-    if request.user.id == user_id:
-        return Response({"message": "You cannot follow yourself"}, status=status.HTTP_400_BAD_REQUEST)
-    user_to_follow = get_user_by_id(user_id)
-    if not user_to_follow:
-        return Response({"message": "User does not exist"}, status=status.HTTP_404_NOT_FOUND)
-    if user_to_follow in request.user.following.all():
-        return Response({"message": "You are already following this user"}, status=status.HTTP_400_BAD_REQUEST)
-    request.user.following.add(user_to_follow)
-    return Response({"message": f"You are now following {user_to_follow.username}"}, status=status.HTTP_200_OK)
 
 class FollowUserView(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]
