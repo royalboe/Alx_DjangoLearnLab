@@ -6,13 +6,14 @@
 
 from rest_framework import filters
 from rest_framework import viewsets, permissions
-from .models import Post, Comment
+from .models import Post, Comment, Like
 from .filters import PostFilter, CommentFilter
 
 from .serializers import PostSerializer, CommentSerializer
 from .permissions import IsOwnerOrReadOnly
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.decorators import action
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
@@ -69,3 +70,41 @@ class FeedViewSet(viewsets.ReadOnlyModelViewSet):
         else:
             qs = qs.none()
         return qs.order_by('-created_at')
+    
+
+class LikeViewSet(viewsets.ViewSet):
+    queryset = Like.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_post(self, pk):
+        try:
+            post = Post.objects.get(id=pk)
+            if not post:
+                return Response({'error': 'Post not found'}, status=status.HTTP_404_NOT_FOUND)
+            return post
+        except Post.DoesNotExist:
+            return Response({'error': 'Post not found'}, status=status.HTTP_404_NOT_FOUND)
+    @action(detail=True, methods=['post'])
+    def like_post(self, request, pk=None):
+        user = request.user
+        post = self.get_post(pk)
+        if post.author == user:
+            return Response({'error': 'You cannot like your own post'}, status=status.HTTP_400_BAD_REQUEST)
+        like, created = Like.objects.get_or_create(post=post, user=user)
+        if created:
+            return Response({'status': 'liked'})
+        else:
+            return Response({'status': 'already liked'})
+        
+
+    @action(detail=True, methods=['post'])
+    def unlike_post(self, request, pk=None):
+        user = request.user
+        post = self.get_post(pk)
+        like = Like.objects.filter(post=post, user=user)
+        if like.exists():
+            like.delete()
+            return Response({'status': 'unliked'})
+        else:
+            return Response({'status': 'not liked'})
+
